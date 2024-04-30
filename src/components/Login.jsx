@@ -1,17 +1,72 @@
 import { useState,useRef } from "react";
 import Header from "./Header";
 import { validateData } from "../utils/validateData";
+import {  createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword ,updateProfile} from "firebase/auth";
+import { auth } from "../utils/FirebaseConfig";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
 const Login=()=>{
+    const dispatch=useDispatch();
+    const navigate=useNavigate();
     const [isLoggedIn,setIsLoggedIn]=useState(true);
     const [errorMessage,setErrorMessage]=useState(null);
 
     const email=useRef(null);
     const password=useRef(null);
     const name=useRef(null)
-    const handleSubmit=()=>{
-       const message= validateData(name.current.value,email.current.value,password.current.value)
+    const handleButton=()=>{
+       const message= validateData(email.current.value,password.current.value)
        setErrorMessage(message)
+    
+       if(!isLoggedIn){
+        createUserWithEmailAndPassword(auth, email.current.value,password.current.value)
+        .then((userCredential) => {
+       // Signed up 
+         const user = userCredential.user;
+         updateProfile(user, {
+            displayName: name.current.value, photoURL: "https://wallpapers.com/images/hd/netflix-profile-pictures-1000-x-1000-qo9h82134t9nv0j0.jpg"
+          }).then(() => {
+            const {uid,email,displayName,photoURL}=auth.currentUser;
+            dispatch(
+                addUser({
+                    uid:uid,
+                    email:email,
+                    displayName:displayName,
+                    photoURL:photoURL
+
+                })
+            );
+            navigate("/browse")
+          }).catch((error) => {
+            setErrorMessage(error.message)
+          });
+         })
+         .catch((error) => {
+             const errorCode = error.code;
+             const errorMessage = error.message;
+             setErrorMessage(errorCode+" "+errorMessage)
+             
+         });
+       }
+       else{
+        signInWithEmailAndPassword(auth,email.current.value,password.current.value)
+        .then((userCredential) => {
+          // Signed in 
+          const user = userCredential.user;
+          console.log(user)
+          
+          navigate("/browse")
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode+" "+errorMessage)
+        });
+       }
+      
     }
    
     const handleClick=()=>{
@@ -29,7 +84,7 @@ const Login=()=>{
                 <input  ref={email} type="text" placeholder="Email  Address" className="p-2 bg-gray-700" />
                 <input ref={password} type="password" placeholder="password" className="p-2 bg-gray-700 " />
                 <p className="text-xl text-red-500">{errorMessage}</p>
-                <button onClick={handleSubmit} className="p-2 bg-red-700 rounded-md font-semibold">{isLoggedIn?"Sign In": "Sign Up"}</button>
+                <button onClick={handleButton} className="p-2 bg-red-700 rounded-md font-semibold">{isLoggedIn?"Sign In": "Sign Up"}</button>
                 <p>New to Netflix? <span className="text-blue-600 cursor-pointer"
                 onClick={handleClick}>{isLoggedIn?"Sign Up":"Sign In"}</span> Now</p>
             </form>
