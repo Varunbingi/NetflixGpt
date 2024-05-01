@@ -4,13 +4,13 @@ import { validateData } from "../utils/validateData";
 import {  createUserWithEmailAndPassword } from "firebase/auth";
 import { signInWithEmailAndPassword ,updateProfile} from "firebase/auth";
 import { auth } from "../utils/FirebaseConfig";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
+import { BG_IMG, USER_AVATAR } from "../utils/constants";
 
 const Login=()=>{
     const dispatch=useDispatch();
-    const navigate=useNavigate();
+    
     const [isLoggedIn,setIsLoggedIn]=useState(true);
     const [errorMessage,setErrorMessage]=useState(null);
 
@@ -27,7 +27,7 @@ const Login=()=>{
        // Signed up 
          const user = userCredential.user;
          updateProfile(user, {
-            displayName: name.current.value, photoURL: "https://wallpapers.com/images/hd/netflix-profile-pictures-1000-x-1000-qo9h82134t9nv0j0.jpg"
+            displayName: name.current.value, photoURL: USER_AVATAR
           }).then(() => {
             const {uid,email,displayName,photoURL}=auth.currentUser;
             dispatch(
@@ -39,7 +39,7 @@ const Login=()=>{
 
                 })
             );
-            navigate("/browse")
+            
           }).catch((error) => {
             setErrorMessage(error.message)
           });
@@ -56,9 +56,9 @@ const Login=()=>{
         .then((userCredential) => {
           // Signed in 
           const user = userCredential.user;
-          console.log(user)
           
-          navigate("/browse")
+          
+          
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -76,7 +76,7 @@ const Login=()=>{
         <div>
             <Header/>
             <div className="absolute  ">
-                <img className="min-h-[100vh]" src="https://assets.nflxext.com/ffe/siteui/vlv3/c7f07b68-7989-4ff7-a31e-11c17dcc2fea/fcf685b8-3f9f-42d8-9af3-4bb86fa5a3b8/IN-en-20240422-popsignuptwoweeks-perspective_alpha_website_medium.jpg" alt="bg-img" />
+                <img className="min-h-[100vh]" src={BG_IMG}alt="bg-img" />
             </div>
             <form onClick={(e)=>e.preventDefault()} className="md:w-3/12 w-1/2 mt-48 mx-auto right-0 flex flex-col left-0 absolute p-12  bg-black bg-opacity-85 rounded-md text-white space-y-6">
                 <h1 className="font-semibold text-3xl ">{isLoggedIn?"Sign In": "Sign Up"}</h1>
